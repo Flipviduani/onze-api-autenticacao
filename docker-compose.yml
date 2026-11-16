@@ -1,0 +1,60 @@
+
+# Docker Compose do projeto onze-api-autenticacao
+services:
+
+  # Banco de dados MySQL
+  mysql:
+    image: mysql:8.4
+    container_name: onze-api-autenticacao-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: bd-autenticacao
+      MYSQL_USER: vidu
+      MYSQL_PASSWORD: vidu
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - onze-api-autenticacao-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "vidu", "-pvidu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Interface de gerenciamento do MySQL
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: onze-api-autenticacao-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: vidu
+      PMA_PASSWORD: vidu
+    ports:
+      - "5053:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - onze-api-autenticacao-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+# Rede compartilhada entre os serviços
+networks:
+  onze-api-autenticacao-network:
+    driver: bridge
+
+# Volumes persistentes
+volumes:
+  mysql_data:
+    name: onze-api-autenticacao-mysql-data

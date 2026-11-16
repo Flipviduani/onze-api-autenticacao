@@ -1,3 +1,25 @@
+
+# Configurações do servidor
+server:
+  port: 8082
+
+# Configurações do Spring
 spring:
   application:
     name: onze-api-autenticacao
+
+  # Configurações de conexão com o banco de dados
+  datasource:
+    url: jdbc:mysql://localhost:3307/bd-autenticacao
+    username: vidu
+    password: vidu
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Configurações do Spring Data JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

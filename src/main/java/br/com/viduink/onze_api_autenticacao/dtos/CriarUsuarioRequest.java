@@ -11,12 +11,12 @@ public record CriarUsuarioRequest(
         @NotBlank(message = "O nome do usuário é obrigatório.")
         String nome,
 
-        @Email(message = "Informe um enederço de e-mail válido.")
+        @Email(message = "Informe um endereço de e-mail válido.")
         @NotBlank(message = "O e-mail do usuário é obrigatório.")
         String email,
 
         @Pattern(
-                regexp ="",
+                regexp = "(?=.*\\p{Ll})(?=.*\\p{Lu})(?=.*[0-9])(?=.*[\\p{P}\\p{S}])\\S{8,}",
                 message = "A senha deve conter pelo menos 8 caracteres e um de cada: letra minúscula, maiúscula, " +
                         "número, caracter especial."
         )

@@ -1,11 +1,10 @@
 package br.com.viduink.onze_api_autenticacao.services;
 
-import br.com.viduink.onze_api_autenticacao.dtos.AutenticarUsuarioRequest;
-import br.com.viduink.onze_api_autenticacao.dtos.AutenticarUsuarioResponse;
 import br.com.viduink.onze_api_autenticacao.dtos.CriarUsuarioRequest;
 import br.com.viduink.onze_api_autenticacao.dtos.CriarUsuarioResponse;
 import br.com.viduink.onze_api_autenticacao.entities.Perfil;
 import br.com.viduink.onze_api_autenticacao.entities.Usuario;
+import br.com.viduink.onze_api_autenticacao.exceptions.EmailJaCadastradoException;
 import br.com.viduink.onze_api_autenticacao.repositories.PerfilRepository;
 import br.com.viduink.onze_api_autenticacao.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.HexFormat;
 
 @Service
-    public class UsuarioService {
+public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -27,16 +26,16 @@ import java.util.HexFormat;
     private PerfilRepository perfilRepository;
 
     /*
-        Metodo para implementar o fluxo de cadastro do usuário
+        Metodo para implementaro fluxo de cadastro do usuário
      */
     public CriarUsuarioResponse criarUsuario(CriarUsuarioRequest request) {
 
         //Verificar se o email já está cadastrado no banco de dados
         if(usuarioRepository.findByEmail(request.email()) != null) {
-            throw new IllegalArgumentException("O email informado já está cadastrado. Tente outro.");
+            throw new EmailJaCadastradoException();
         }
 
-        //Capturar os dados recebidos e criar uma instância da classe de entidade
+        //Capturar os dados recebidos e criar uma instancia da classe de entidade
         var usuario = new Usuario();
         usuario.setNome(request.nome());
         usuario.setEmail(request.email());
@@ -45,7 +44,7 @@ import java.util.HexFormat;
         //Todo usuário que se cadastrar será vinculado a um perfil chamado "Operador"
         var perfil = perfilRepository.findByNome("Operador");
 
-        //Se o perfil não existir iremos cadastrá-lo
+        //Se o perfil não existir iremos cadastra-lo
         if(perfil == null) {
             perfil = new Perfil();
             perfil.setNome("Operador");
@@ -55,7 +54,7 @@ import java.util.HexFormat;
         //Associar o usuário ao perfil operador
         usuario.setPerfil(perfil);
 
-        //Salvar o usuário no banco de dados:
+        //Salvar o usuário no banco de dados
         usuarioRepository.save(usuario);
 
         //Retornar os dados do usuário
@@ -70,16 +69,15 @@ import java.util.HexFormat;
     }
 
     /*
-        Metodo para implementar o fluxo de autenticação do usuário
+        Metodo para implementaro fluxo de autenticação do usuário
      */
-    public AutenticarUsuarioResponse autenticarUsuario(AutenticarUsuarioRequest request) {
-        //TODO
-        return null;
+    public void autenticarUsuario() {
+
     }
 
     /*
-   Método privado auxiliar para fazer a criptografia da senha do usuário
-*/
+        Metodo privado auxiliar para fazer a criptografia da senha do usuário
+     */
     private String criptografarSenha(String senha) {
         try {
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");

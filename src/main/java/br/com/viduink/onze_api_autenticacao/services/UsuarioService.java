@@ -1,19 +1,26 @@
 package br.com.viduink.onze_api_autenticacao.services;
 
+import br.com.viduink.onze_api_autenticacao.dtos.AutenticarUsuarioRequest;
+import br.com.viduink.onze_api_autenticacao.dtos.AutenticarUsuarioResponse;
 import br.com.viduink.onze_api_autenticacao.dtos.CriarUsuarioRequest;
 import br.com.viduink.onze_api_autenticacao.dtos.CriarUsuarioResponse;
 import br.com.viduink.onze_api_autenticacao.entities.Perfil;
 import br.com.viduink.onze_api_autenticacao.entities.Usuario;
+import br.com.viduink.onze_api_autenticacao.exceptions.AcessoNegadoException;
 import br.com.viduink.onze_api_autenticacao.exceptions.EmailJaCadastradoException;
 import br.com.viduink.onze_api_autenticacao.repositories.PerfilRepository;
 import br.com.viduink.onze_api_autenticacao.repositories.UsuarioRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HexFormat;
 
 @Service
@@ -26,7 +33,7 @@ public class UsuarioService {
     private PerfilRepository perfilRepository;
 
     /*
-        Metodo para implementaro fluxo de cadastro do usuário
+        Método para implementaro fluxo de cadastro do usuário
      */
     public CriarUsuarioResponse criarUsuario(CriarUsuarioRequest request) {
 
@@ -69,14 +76,34 @@ public class UsuarioService {
     }
 
     /*
-        Metodo para implementaro fluxo de autenticação do usuário
+        Método para implementaro fluxo de autenticação do usuário
      */
-    public void autenticarUsuario() {
+    public AutenticarUsuarioResponse autenticarUsuario(AutenticarUsuarioRequest request) {
 
+        //Procurar o usuário no banco de dados através do email informado
+        var usuario = usuarioRepository.findByEmail(request.email());
+
+        //Verificar se o usuário foi encontrado e se a senha corresponse ao valor enviado no request
+        if(usuario != null && usuario.getSenha().equals(criptografarSenha(request.senha()))) {
+
+            //Retornar os dados do usuário autenticado
+            return new AutenticarUsuarioResponse(
+                    "Usuário autenticado com sucesso.",
+                    usuario.getId(),
+                    usuario.getNome(),
+                    usuario.getEmail(),
+                    usuario.getPerfil().getNome(),
+                    LocalDateTime.now(),
+                    gerarToken(usuario)
+            );
+        }
+        else {
+            throw new AcessoNegadoException();
+        }
     }
 
     /*
-        Metodo privado auxiliar para fazer a criptografia da senha do usuário
+        Método privado auxiliar para fazer a criptografia da senha do usuário
      */
     private String criptografarSenha(String senha) {
         try {
@@ -86,5 +113,24 @@ public class UsuarioService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 indisponível no ambiente Java.", e);
         }
+    }
+
+    //Metodo privado auxiliar para gerar um TOKEN JWT:
+
+    private String gerarToken(Usuario usuario){
+        //Chave para criptografar e assinar o token
+        var chaveAssinatura = "c9237f2f-ca98-4966-a8b6-0513db8c6c21";
+
+        //Gerar o Token JWT:
+        Instant agora = Instant.now();
+        Instant dataExpiracao = agora.plusMillis(3600000); //1 hora
+
+        return Jwts.builder()
+                .setSubject(usuario.getEmail()) //Usuário que gerou o TOKEN JWT
+                .claim("role", usuario.getPerfil().getNome()) //Perfil do usuário
+                .setIssuedAt(Date.from(agora)) //Data e hora de geração do TOKEN
+                .setExpiration(Date.from(dataExpiracao)) //Data de exíração do token
+                .signWith(SignatureAlgorithm.HS256, chaveAssinatura) //Chave secreta para criptografia
+                .compact(); //Retornar o TOKEN
     }
 }

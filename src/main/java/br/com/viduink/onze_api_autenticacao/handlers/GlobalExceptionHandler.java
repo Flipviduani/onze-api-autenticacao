@@ -1,5 +1,6 @@
 package br.com.viduink.onze_api_autenticacao.handlers;
 
+import br.com.viduink.onze_api_autenticacao.exceptions.AcessoNegadoException;
 import br.com.viduink.onze_api_autenticacao.exceptions.EmailJaCadastradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -17,6 +18,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErroResponse handleEmailJaCadastrado(EmailJaCadastradoException e) {
         return new ErroResponse("email", e.getMessage());
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErroResponse handleAcessoNegado(AcessoNegadoException e) {
+        return new ErroResponse("erro", e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

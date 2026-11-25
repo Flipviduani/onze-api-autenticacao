@@ -1,0 +1,30 @@
+# Configurações do servidor
+server:
+  port: 8082
+
+# Configurações do Spring
+spring:
+  application:
+    name: onze-api-autenticacao
+
+  # Configurações do banco H2
+  datasource:
+    url: jdbc:h2:mem:bd-autenticacao
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # Configurações do Spring Data JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Console web do H2
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

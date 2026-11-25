@@ -1,13 +1,75 @@
 package br.com.viduink.onze_api_autenticacao;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.assertj.core.api.Fail.fail;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
 class OnzeApiAutenticacaoApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Autowired
+    private MockMvc mockMvc;
 
+    @Test
+    @DisplayName("TS01 - Deve criar um usuário com sucesso na API.")
+    void deveCriarUsuarioComSucesso() throws Exception {
+
+        //ARRANGE:
+        var request = """
+                {
+                "nome": "Felipe Viduani",
+                "email": "vidu@email.com",
+                "senha": "@Admin123"
+                }
+                """;
+
+        //ACT:
+        var response = mockMvc.perform(post("/api/v1/usuario/criar")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(request));
+
+        //ASSERT:
+        response.andExpect(status().isCreated());
+        response.andExpect(jsonPath("$.mensagem").value("Usuário cadastrado com sucesso"));
+        response.andExpect(jsonPath("$.nome").value("Felipe Viduani"));
+        response.andExpect(jsonPath("$.email").value("vidu@email.com"));
+        response.andExpect(jsonPath("$.perfil").value("Operador"));
+    }
+
+    @Test
+    @DisplayName("TS02 - Não deve permitir a criação de usuário com e-mail já cadastrado no sistema.")
+    void naoDeveCriarUsuarioComEmailJaCadastrado() {
+        fail("Não implementado.");
+    }
+
+    @Test
+    @DisplayName("TS03 - Não deve criar um usuário com senha fraca.")
+    void naoDeveCriarUsuarioComSenhaFraca() {
+        fail("Não implementado.");
+    }
+
+    @Test
+    @DisplayName("TS04 - Deve autenticar um usuário com sucesso na API.")
+    void deveAutenticarUsuarioComSucesso() {
+        fail("Não implementado.");
+    }
+
+    @Test
+    @DisplayName("TS05 - Não deve autenticar um usuário com e-mail e senha inválidos.")
+    void naoDeveAutenticarUsuarioComEmailESenhaInvalidos() {
+        fail("Não implementado.");
+    }
 }
